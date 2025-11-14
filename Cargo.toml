@@ -74,3 +74,21 @@ inherits = "release"
 opt-level = 'z'
 lto = true
 codegen-units = 1
+
+# Leptos configuration
+[package.metadata.leptos]
+output-name = "timeblocking"
+site-root = "target/site"
+site-pkg-dir = "pkg"
+style-file = "style/main.css"
+assets-dir = "public"
+site-addr = "0.0.0.0:3000"
+reload-port = 3001
+browserquery = "defaults"
+watch = false
+env = "PROD"
+bin-features = ["ssr"]
+bin-default-features = false
+lib-features = ["hydrate"]
+lib-default-features = false
+lib-profile-release = "wasm-release"
