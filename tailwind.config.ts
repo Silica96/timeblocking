@@ -2,9 +2,12 @@ import type { Config } from "tailwindcss";
 
 const config: Config = {
   content: [
+    // TypeScript/Next.js version
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
+    // Rust/Leptos version
+    "./src/**/*.rs",
   ],
   theme: {
     extend: {

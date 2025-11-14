@@ -12,7 +12,9 @@
     "docker:prod": "docker-compose -f docker-compose.prod.yml up",
     "docker:prod:build": "docker-compose -f docker-compose.prod.yml up --build",
     "docker:down": "docker-compose down",
-    "docker:down:prod": "docker-compose -f docker-compose.prod.yml down"
+    "docker:down:prod": "docker-compose -f docker-compose.prod.yml down",
+    "build:css": "tailwindcss -i ./style/main.css -o ./target/site/main.css",
+    "watch:css": "tailwindcss -i ./style/main.css -o ./target/site/main.css --watch"
   },
   "dependencies": {
     "@prisma/client": "^6.19.0",
