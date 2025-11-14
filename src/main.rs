@@ -3,7 +3,7 @@
 async fn main() {
     use axum::Router;
     use leptos::*;
-    use leptos_axum::{generate_route_list, LeptosRoutes};
+    use leptos_axum::{generate_route_list_with_ssg, LeptosRoutes};
     use timeblocking::app::*;
     use timeblocking::db;
 
@@ -28,7 +28,7 @@ async fn main() {
     let conf = get_configuration(None).await.unwrap();
     let leptos_options = conf.leptos_options;
     let addr = leptos_options.site_addr;
-    let routes = generate_route_list(App);
+    let (routes, _static_data_map) = generate_route_list_with_ssg(App);
 
     // Build application router with context
     let app = Router::new()
@@ -36,8 +36,9 @@ async fn main() {
             &leptos_options,
             routes,
             move || provide_context(pool.clone()),
-            App
-        );
+            || view! { <App/> }
+        )
+        .with_state(leptos_options);
 
     tracing::info!("listening on http://{}", &addr);
 
