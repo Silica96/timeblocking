@@ -16,25 +16,31 @@
 
 ```
 timeblocking/
-├── CLAUDE.md           # This file - AI assistant guide
-├── .gitignore          # Git ignore patterns
-├── .env.example        # Environment variables template
-├── package.json        # Node.js dependencies
-├── next.config.js      # Next.js configuration
-├── tsconfig.json       # TypeScript configuration
-├── tailwind.config.ts  # Tailwind CSS configuration
-├── postcss.config.mjs  # PostCSS configuration
-├── app/                # Next.js App Router
-│   ├── layout.tsx      # Root layout component
-│   ├── page.tsx        # Home page
-│   ├── globals.css     # Global styles
-│   └── api/            # API routes (to be created)
-├── components/         # Reusable UI components (to be created)
-├── lib/                # Utility libraries
-│   └── prisma.ts       # Prisma client instance
-├── prisma/             # Prisma ORM
-│   └── schema.prisma   # Database schema
-└── public/             # Static assets (Next.js default)
+├── CLAUDE.md              # This file - AI assistant guide
+├── .gitignore             # Git ignore patterns
+├── .dockerignore          # Docker ignore patterns
+├── .env.example           # Environment variables template (local dev)
+├── .env.docker            # Environment variables template (Docker)
+├── package.json           # Node.js dependencies
+├── next.config.js         # Next.js configuration
+├── tsconfig.json          # TypeScript configuration
+├── tailwind.config.ts     # Tailwind CSS configuration
+├── postcss.config.mjs     # PostCSS configuration
+├── Dockerfile             # Production Docker image
+├── Dockerfile.dev         # Development Docker image
+├── docker-compose.yml     # Docker Compose (development)
+├── docker-compose.prod.yml # Docker Compose (production)
+├── app/                   # Next.js App Router
+│   ├── layout.tsx         # Root layout component
+│   ├── page.tsx           # Home page
+│   ├── globals.css        # Global styles
+│   └── api/               # API routes (to be created)
+├── components/            # Reusable UI components (to be created)
+├── lib/                   # Utility libraries
+│   └── prisma.ts          # Prisma client instance
+├── prisma/                # Prisma ORM
+│   └── schema.prisma      # Database schema
+└── public/                # Static assets (Next.js default)
 ```
 
 ## Technology Stack
@@ -289,6 +295,69 @@ DATABASE_URL="file:./dev.db"
 npx prisma migrate dev
 ```
 
+### Docker Setup (Recommended)
+
+Docker provides the easiest way to get started with a complete development environment including PostgreSQL.
+
+**Development Environment:**
+```bash
+# Start development environment (app + database)
+npm run docker:dev
+
+# Or build from scratch
+npm run docker:dev:build
+
+# Stop containers
+npm run docker:down
+
+# Access the application at http://localhost:3000
+```
+
+**Production Build:**
+```bash
+# Copy environment template
+cp .env.docker .env
+# Edit .env and update passwords
+
+# Start production environment
+npm run docker:prod:build
+
+# Stop production containers
+npm run docker:down:prod
+```
+
+**Direct Docker Compose Commands:**
+```bash
+# Development
+docker-compose up -d              # Start in background
+docker-compose logs -f app        # View app logs
+docker-compose exec app sh        # Shell into app container
+docker-compose down -v            # Stop and remove volumes
+
+# Production
+docker-compose -f docker-compose.prod.yml up -d
+docker-compose -f docker-compose.prod.yml down -v
+```
+
+**Docker Services:**
+- `app`: Next.js application (port 3000)
+- `db`: PostgreSQL database (port 5432)
+
+**Volume Management:**
+```bash
+# View volumes
+docker volume ls
+
+# Remove all volumes (WARNING: deletes all data)
+docker-compose down -v
+
+# Backup database
+docker-compose exec db pg_dump -U timeblocking timeblocking > backup.sql
+
+# Restore database
+docker-compose exec -T db psql -U timeblocking timeblocking < backup.sql
+```
+
 ### Adding a New Feature
 
 1. Create a feature branch: `git checkout -b feature/your-feature-name`
@@ -532,6 +601,14 @@ Document major changes and versions here.
   - Set up Prisma schema with Poll, DateOption, Vote, and VoteOnDate models
   - Configured development environment
   - Added basic homepage with project description
+- **2025-11-14:** Added Docker support
+  - Created Dockerfile for production builds
+  - Created Dockerfile.dev for development
+  - Added docker-compose.yml for development environment
+  - Added docker-compose.prod.yml for production deployment
+  - Configured Next.js standalone output mode
+  - Added Docker-related npm scripts
+  - Updated documentation with Docker setup instructions
 
 ## Contributing
 

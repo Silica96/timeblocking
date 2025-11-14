@@ -6,7 +6,13 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "docker:dev": "docker-compose up",
+    "docker:dev:build": "docker-compose up --build",
+    "docker:prod": "docker-compose -f docker-compose.prod.yml up",
+    "docker:prod:build": "docker-compose -f docker-compose.prod.yml up --build",
+    "docker:down": "docker-compose down",
+    "docker:down:prod": "docker-compose -f docker-compose.prod.yml down"
   },
   "dependencies": {
     "@prisma/client": "^6.19.0",

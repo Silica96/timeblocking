@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:16-alpine
+    container_name: timeblocking-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: timeblocking
+      POSTGRES_PASSWORD: timeblocking_password
+      POSTGRES_DB: timeblocking
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - timeblocking-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U timeblocking"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Next.js Application (Development)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: timeblocking-app
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://timeblocking:timeblocking_password@db:5432/timeblocking?schema=public
+      NODE_ENV: development
+    ports:
+      - "3000:3000"
+    volumes:
+      # Mount source code for hot reload
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - timeblocking-network
+    command: sh -c "npx prisma migrate deploy && npm run dev"
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  timeblocking-network:
+    driver: bridge
