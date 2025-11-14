@@ -33,6 +33,7 @@ pub fn CreatePollPage() -> impl IntoView {
         set_error.set(None);
 
         let title_val = title.get();
+        let desc_val = description.get();
         let start_val = start_date.get();
         let end_val = end_date.get();
 
@@ -52,10 +53,10 @@ pub fn CreatePollPage() -> impl IntoView {
         spawn_local(async move {
             let request = CreatePollRequest {
                 title: title_val,
-                description: if description.get().is_empty() {
+                description: if desc_val.is_empty() {
                     None
                 } else {
-                    Some(description.get())
+                    Some(desc_val)
                 },
                 start_date: format!("{}T00:00:00Z", start_val)
                     .parse()

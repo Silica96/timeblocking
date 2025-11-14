@@ -14,7 +14,7 @@ const MONTH_NAMES: [&str; 12] = [
 pub fn CalendarGrid(
     date_options: Vec<DateOptionWithVotes>,
     selected_dates: ReadSignal<Vec<Uuid>>,
-    on_toggle: impl Fn(Uuid) + 'static,
+    on_toggle: impl Fn(Uuid) + 'static + Clone,
     max_votes: i64,
 ) -> impl IntoView {
     let months = group_by_month(&date_options);
@@ -22,13 +22,14 @@ pub fn CalendarGrid(
     view! {
         <div class="space-y-8">
             {months.into_iter().map(|(year, month, dates)| {
+                let on_toggle = on_toggle.clone();
                 view! {
                     <MonthCalendar
                         year=year
                         month=month
                         dates=dates
                         selected_dates=selected_dates
-                        on_toggle=&on_toggle
+                        on_toggle=on_toggle
                         max_votes=max_votes
                     />
                 }
@@ -43,7 +44,7 @@ fn MonthCalendar(
     month: u32,
     dates: Vec<DateOptionWithVotes>,
     selected_dates: ReadSignal<Vec<Uuid>>,
-    on_toggle: impl Fn(Uuid) + 'static,
+    on_toggle: impl Fn(Uuid) + 'static + Clone,
     max_votes: i64,
 ) -> impl IntoView {
     // Create hashmap for quick lookup
@@ -111,6 +112,7 @@ fn MonthCalendar(
                 // Calendar days
                 {calendar_days.into_iter().enumerate().map(|(idx, cell)| {
                     let weekday = idx % 7;
+                    let on_toggle = on_toggle.clone();
 
                     match cell {
                         None => view! {
@@ -134,7 +136,7 @@ fn MonthCalendar(
                                     heatmap_class=heatmap_class
                                     weekday=weekday
                                     selected_dates=selected_dates
-                                    on_toggle=&on_toggle
+                                    on_toggle=on_toggle
                                 />
                             }.into_view()
                         }

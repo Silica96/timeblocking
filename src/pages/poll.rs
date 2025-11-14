@@ -174,7 +174,7 @@ pub fn PollPage() -> impl IntoView {
                                                     view! {
                                                         <div class="flex items-center justify-between bg-white dark:bg-gray-800 rounded-lg p-3">
                                                             <div class="flex items-center gap-3">
-                                                                <span class="text-2xl">{medal}</span>
+                                                                <span class="text-2xl">{*medal}</span>
                                                                 <span class="font-medium text-gray-900 dark:text-white">
                                                                     {result.date.format("%Y년 %m월 %d일 (%a)").to_string()}
                                                                 </span>

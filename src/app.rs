@@ -2,8 +2,7 @@ use leptos::*;
 use leptos_meta::*;
 use leptos_router::*;
 
-mod pages;
-use pages::*;
+use crate::pages::*;
 
 #[component]
 pub fn App() -> impl IntoView {
