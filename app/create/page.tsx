@@ -6,6 +6,8 @@ import { Input } from '@/components/Input';
 import { Textarea } from '@/components/Textarea';
 import { Button } from '@/components/Button';
 import { CreatePollRequest, CreatePollResponse } from '@/lib/types';
+import { getDayCount } from '@/lib/utils/date';
+import { MAX_DATE_RANGE_WARNING } from '@/lib/constants';
 
 export default function CreatePollPage() {
   const router = useRouter();
@@ -17,9 +19,7 @@ export default function CreatePollPage() {
   const [error, setError] = useState('');
 
   // Calculate number of days in range
-  const dayCount = startDate && endDate
-    ? Math.ceil((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1
-    : 0;
+  const dayCount = startDate && endDate ? getDayCount(startDate, endDate) : 0;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -141,7 +141,7 @@ export default function CreatePollPage() {
               </div>
             )}
 
-            {dayCount > 31 && (
+            {dayCount > MAX_DATE_RANGE_WARNING && (
               <div className="mt-2 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded text-sm text-yellow-800 dark:text-yellow-200">
                 ⚠️ 날짜가 많으면 달력이 길어질 수 있습니다.
               </div>

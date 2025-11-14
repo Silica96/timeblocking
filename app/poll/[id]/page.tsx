@@ -1,48 +1,26 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useParams } from 'next/navigation';
 import { Button } from '@/components/Button';
 import { Input } from '@/components/Input';
 import { CalendarGrid } from '@/components/CalendarGrid';
-import { PollWithResults, SubmitVoteRequest } from '@/lib/types';
+import { usePoll } from '@/lib/hooks/usePoll';
+import { useVoteSubmit } from '@/lib/hooks/useVoteSubmit';
+import { calculateVoteStats } from '@/lib/utils/heatmap';
+import { formatDateKo } from '@/lib/utils/date';
+import { MEDAL_EMOJIS } from '@/lib/constants';
 
 export default function PollPage() {
   const params = useParams();
   const pollId = params.id as string;
 
-  const [poll, setPoll] = useState<PollWithResults | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [submitting, setSubmitting] = useState(false);
+  const { poll, loading, error, refetch } = usePoll(pollId);
+  const { submit, submitting, submitError, submitSuccess, resetStatus } = useVoteSubmit(refetch);
 
   const [participantName, setParticipantName] = useState('');
   const [selectedDateIds, setSelectedDateIds] = useState<string[]>([]);
-  const [submitError, setSubmitError] = useState('');
-  const [submitSuccess, setSubmitSuccess] = useState(false);
   const [showResults, setShowResults] = useState(true);
-
-  // Fetch poll data
-  const fetchPoll = async () => {
-    try {
-      const response = await fetch(`/api/polls/${pollId}`);
-
-      if (!response.ok) {
-        throw new Error('투표를 찾을 수 없습니다.');
-      }
-
-      const data: PollWithResults = await response.json();
-      setPoll(data);
-      setLoading(false);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '오류가 발생했습니다.');
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchPoll();
-  }, [pollId]);
 
   const handleDateToggle = (dateId: string) => {
     setSelectedDateIds((prev) =>
@@ -50,57 +28,28 @@ export default function PollPage() {
         ? prev.filter((id) => id !== dateId)
         : [...prev, dateId]
     );
-    setSubmitSuccess(false);
+    resetStatus();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitError('');
-    setSubmitSuccess(false);
 
-    if (selectedDateIds.length === 0) {
-      setSubmitError('최소 1개의 날짜를 선택해주세요.');
-      return;
-    }
+    const success = await submit(pollId, {
+      participantName: participantName.trim() || undefined,
+      selectedDateIds,
+    });
 
-    setSubmitting(true);
-
-    try {
-      const request: SubmitVoteRequest = {
-        participantName: participantName.trim() || undefined,
-        selectedDateIds,
-      };
-
-      const response = await fetch(`/api/polls/${pollId}/vote`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(request),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || '투표 제출에 실패했습니다.');
-      }
-
-      setSubmitSuccess(true);
+    if (success) {
       setShowResults(true);
-      // Refresh poll data to show updated results
-      await fetchPoll();
-    } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.');
-    } finally {
-      setSubmitting(false);
     }
   };
 
   const copyLinkToClipboard = () => {
-    const url = window.location.href;
-    navigator.clipboard.writeText(url);
+    navigator.clipboard.writeText(window.location.href);
     alert('링크가 클립보드에 복사되었습니다!');
   };
 
+  // Loading state
   if (loading) {
     return (
       <main className="min-h-screen p-8 flex items-center justify-center">
@@ -112,6 +61,7 @@ export default function PollPage() {
     );
   }
 
+  // Error state
   if (error || !poll) {
     return (
       <main className="min-h-screen p-8 flex items-center justify-center">
@@ -128,16 +78,8 @@ export default function PollPage() {
     );
   }
 
-  // Calculate vote counts for heatmap
-  const voteCountsMap = new Map<string, number>();
-  let maxVoteCount = 0;
-
-  poll.results.forEach((result) => {
-    voteCountsMap.set(result.dateOptionId, result.voteCount);
-    if (result.voteCount > maxVoteCount) {
-      maxVoteCount = result.voteCount;
-    }
-  });
+  // Calculate vote statistics
+  const { voteCountsMap, maxVoteCount } = calculateVoteStats(poll.results);
 
   // Get top voted dates
   const topVotedDates = [...poll.results]
@@ -178,8 +120,8 @@ export default function PollPage() {
             <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow">
               <div className="text-sm text-gray-500 mb-1">투표 기간</div>
               <div className="text-lg font-semibold">
-                {new Date(poll.startDate).toLocaleDateString('ko-KR')} ~{' '}
-                {new Date(poll.endDate).toLocaleDateString('ko-KR')}
+                {formatDateKo(poll.startDate, { month: 'short', day: 'numeric' })} ~{' '}
+                {formatDateKo(poll.endDate, { month: 'short', day: 'numeric' })}
               </div>
             </div>
             <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow">
@@ -200,12 +142,10 @@ export default function PollPage() {
             <div className="space-y-2">
               {topVotedDates.map((result, idx) => (
                 <div key={result.dateOptionId} className="flex items-center gap-3">
-                  <div className="text-2xl">
-                    {idx === 0 ? '🥇' : idx === 1 ? '🥈' : '🥉'}
-                  </div>
+                  <div className="text-2xl">{MEDAL_EMOJIS[idx]}</div>
                   <div className="flex-1">
                     <div className="font-medium">
-                      {new Date(result.date).toLocaleDateString('ko-KR', {
+                      {formatDateKo(result.date, {
                         month: 'long',
                         day: 'numeric',
                         weekday: 'short',
@@ -233,7 +173,7 @@ export default function PollPage() {
             />
             <p className="mt-2 text-sm text-gray-500">
               💡 가능한 날짜를 달력에서 클릭하여 선택하세요.
-              {showResults ? ' 초록색이 진할수록 더 많은 사람이 선택한 날짜입니다.' : ''}
+              {showResults && ' 초록색이 진할수록 더 많은 사람이 선택한 날짜입니다.'}
             </p>
           </div>
 
@@ -277,7 +217,11 @@ export default function PollPage() {
             disabled={submitting || selectedDateIds.length === 0}
             fullWidth
           >
-            {submitting ? '제출 중...' : selectedDateIds.length > 0 ? `${selectedDateIds.length}개 날짜 투표하기` : '날짜를 선택하세요'}
+            {submitting
+              ? '제출 중...'
+              : selectedDateIds.length > 0
+              ? `${selectedDateIds.length}개 날짜 투표하기`
+              : '날짜를 선택하세요'}
           </Button>
 
           <p className="text-xs text-gray-500 text-center">

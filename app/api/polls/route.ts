@@ -1,34 +1,17 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { CreatePollRequest, CreatePollResponse } from '@/lib/types';
-
-// Helper function to generate all dates between start and end
-function generateDateRange(startDate: Date, endDate: Date): Date[] {
-  const dates: Date[] = [];
-  const currentDate = new Date(startDate);
-  currentDate.setHours(0, 0, 0, 0);
-
-  const end = new Date(endDate);
-  end.setHours(0, 0, 0, 0);
-
-  while (currentDate <= end) {
-    dates.push(new Date(currentDate));
-    currentDate.setDate(currentDate.getDate() + 1);
-  }
-
-  return dates;
-}
+import { generateDateRange } from '@/lib/utils/date';
+import { createErrorResponse, createSuccessResponse, validateRequiredFields, handleApiError } from '@/lib/utils/api';
 
 export async function POST(request: NextRequest) {
   try {
     const body: CreatePollRequest = await request.json();
 
-    // Validate input
-    if (!body.title || !body.startDate || !body.endDate) {
-      return NextResponse.json(
-        { error: 'Title, start date, and end date are required' },
-        { status: 400 }
-      );
+    // Validate required fields
+    const validationError = validateRequiredFields(body, ['title', 'startDate', 'endDate']);
+    if (validationError) {
+      return createErrorResponse(validationError, 400);
     }
 
     const startDate = new Date(body.startDate);
@@ -36,10 +19,7 @@ export async function POST(request: NextRequest) {
 
     // Validate date range
     if (startDate > endDate) {
-      return NextResponse.json(
-        { error: 'Start date must be before or equal to end date' },
-        { status: 400 }
-      );
+      return createErrorResponse('Start date must be before or equal to end date', 400);
     }
 
     // Generate all dates in the range
@@ -50,12 +30,10 @@ export async function POST(request: NextRequest) {
       data: {
         title: body.title,
         description: body.description || null,
-        startDate: startDate,
-        endDate: endDate,
+        startDate,
+        endDate,
         dateOptions: {
-          create: dates.map((date) => ({
-            date: date,
-          })),
+          create: dates.map((date) => ({ date })),
         },
       },
       include: {
@@ -68,12 +46,8 @@ export async function POST(request: NextRequest) {
       pollUrl: `${request.nextUrl.origin}/poll/${poll.id}`,
     };
 
-    return NextResponse.json(response, { status: 201 });
+    return createSuccessResponse(response, 201);
   } catch (error) {
-    console.error('Error creating poll:', error);
-    return NextResponse.json(
-      { error: 'Failed to create poll' },
-      { status: 500 }
-    );
+    return handleApiError(error, 'Error creating poll');
   }
 }

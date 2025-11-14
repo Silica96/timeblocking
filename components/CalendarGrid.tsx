@@ -1,6 +1,8 @@
 'use client';
 
 import { DateOption } from '@/lib/types';
+import { MONTH_NAMES_KO, DAY_NAMES_KO } from '@/lib/constants';
+import { getHeatmapColor } from '@/lib/utils/heatmap';
 
 interface CalendarGridProps {
   dateOptions: DateOption[];
@@ -10,15 +12,11 @@ interface CalendarGridProps {
   maxVoteCount?: number;
 }
 
-export function CalendarGrid({
-  dateOptions,
-  selectedDateIds,
-  onDateToggle,
-  voteCountsMap,
-  maxVoteCount = 1,
-}: CalendarGridProps) {
-  // Group dates by month
-  const datesByMonth = dateOptions.reduce((acc, dateOption) => {
+/**
+ * Group date options by month
+ */
+function groupDatesByMonth(dateOptions: DateOption[]) {
+  return dateOptions.reduce((acc, dateOption) => {
     const date = new Date(dateOption.date);
     const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
 
@@ -33,26 +31,43 @@ export function CalendarGrid({
     acc[monthKey].dates.push(dateOption);
     return acc;
   }, {} as Record<string, { year: number; month: number; dates: DateOption[] }>);
+}
 
-  const monthNames = [
-    '1월', '2월', '3월', '4월', '5월', '6월',
-    '7월', '8월', '9월', '10월', '11월', '12월'
-  ];
+/**
+ * Get CSS classes for day cell based on state
+ */
+function getDayCellClasses(
+  isSelected: boolean,
+  heatmapColor: string,
+  dayOfWeek: number
+): string {
+  const baseClasses = 'aspect-square p-2 rounded-lg border-2 transition-all relative';
 
-  const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+  if (isSelected) {
+    return `${baseClasses} border-blue-500 bg-blue-500 text-white font-bold shadow-lg scale-105`;
+  }
 
-  // Get heat map color based on vote count
-  const getHeatmapColor = (voteCount: number) => {
-    if (!voteCountsMap || voteCount === 0) return '';
+  if (heatmapColor) {
+    return `${baseClasses} border-gray-200 dark:border-gray-700 ${heatmapColor} text-gray-900`;
+  }
 
-    const intensity = maxVoteCount > 0 ? voteCount / maxVoteCount : 0;
+  const baseUnselected = `${baseClasses} border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700`;
 
-    if (intensity >= 0.8) return 'bg-green-600';
-    if (intensity >= 0.6) return 'bg-green-500';
-    if (intensity >= 0.4) return 'bg-green-400';
-    if (intensity >= 0.2) return 'bg-green-300';
-    return 'bg-green-200';
-  };
+  // Add day-specific colors
+  if (dayOfWeek === 0) return `${baseUnselected} text-red-600 dark:text-red-400`;
+  if (dayOfWeek === 6) return `${baseUnselected} text-blue-600 dark:text-blue-400`;
+
+  return baseUnselected;
+}
+
+export function CalendarGrid({
+  dateOptions,
+  selectedDateIds,
+  onDateToggle,
+  voteCountsMap,
+  maxVoteCount = 1,
+}: CalendarGridProps) {
+  const datesByMonth = groupDatesByMonth(dateOptions);
 
   return (
     <div className="space-y-8">
@@ -69,12 +84,12 @@ export function CalendarGrid({
         return (
           <div key={monthKey} className="bg-white dark:bg-gray-800 rounded-lg p-4">
             <h3 className="text-lg font-semibold mb-4">
-              {year}년 {monthNames[month]}
+              {year}년 {MONTH_NAMES_KO[month]}
             </h3>
 
             {/* Day headers */}
             <div className="grid grid-cols-7 gap-1 mb-2">
-              {dayNames.map((day, idx) => (
+              {DAY_NAMES_KO.map((day, idx) => (
                 <div
                   key={day}
                   className={`text-center text-sm font-medium py-2 ${
@@ -101,24 +116,17 @@ export function CalendarGrid({
                 const dayOfWeek = date.getDay();
                 const isSelected = selectedDateIds.includes(dateOption.id);
                 const voteCount = voteCountsMap?.get(dateOption.id) || 0;
-                const heatmapColor = getHeatmapColor(voteCount);
+                const heatmapColorClass = voteCountsMap
+                  ? getHeatmapColor(voteCount, maxVoteCount)
+                  : '';
 
                 return (
                   <button
                     key={dateOption.id}
                     type="button"
                     onClick={() => onDateToggle(dateOption.id)}
-                    className={`
-                      aspect-square p-2 rounded-lg border-2 transition-all relative
-                      ${isSelected
-                        ? 'border-blue-500 bg-blue-500 text-white font-bold shadow-lg scale-105'
-                        : heatmapColor
-                        ? `border-gray-200 dark:border-gray-700 ${heatmapColor} text-gray-900`
-                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
-                      }
-                      ${dayOfWeek === 0 && !isSelected ? 'text-red-600 dark:text-red-400' : ''}
-                      ${dayOfWeek === 6 && !isSelected ? 'text-blue-600 dark:text-blue-400' : ''}
-                    `}
+                    className={getDayCellClasses(isSelected, heatmapColorClass, dayOfWeek)}
+                    aria-label={`${date.getDate()}일 ${isSelected ? '선택됨' : '선택 안됨'}`}
                   >
                     <div className="text-lg">{date.getDate()}</div>
                     {voteCount > 0 && !isSelected && (
