@@ -49,6 +49,7 @@ pub fn CreatePollPage() -> impl IntoView {
         }
 
         set_creating.set(true);
+        let navigate = navigate.clone();
 
         spawn_local(async move {
             let request = CreatePollRequest {
@@ -186,12 +187,8 @@ async fn create_poll_request(
     request: CreatePollRequest,
 ) -> Result<CreatePollResponse, String> {
     use crate::db;
-    use leptos_axum::extract;
 
-    let pool = extract::<axum::extract::State<sqlx::PgPool>>()
-        .await
-        .map_err(|e| format!("Failed to get pool: {}", e))?
-        .0;
+    let pool = expect_context::<sqlx::PgPool>();
 
     let poll_id = db::create_poll(
         &pool,

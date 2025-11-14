@@ -271,12 +271,8 @@ pub fn PollPage() -> impl IntoView {
 #[cfg(feature = "ssr")]
 async fn fetch_poll(poll_id: Uuid) -> Result<PollWithResults, String> {
     use crate::db;
-    use leptos_axum::extract;
 
-    let pool = extract::<axum::extract::State<sqlx::PgPool>>()
-        .await
-        .map_err(|e| format!("Failed to get pool: {}", e))?
-        .0;
+    let pool = expect_context::<sqlx::PgPool>();
 
     db::get_poll_with_results(&pool, poll_id)
         .await
@@ -305,12 +301,8 @@ async fn fetch_poll(poll_id: Uuid) -> Result<PollWithResults, String> {
 #[cfg(feature = "ssr")]
 async fn submit_vote(poll_id: Uuid, request: SubmitVoteRequest) -> Result<SubmitVoteResponse, String> {
     use crate::db;
-    use leptos_axum::extract;
 
-    let pool = extract::<axum::extract::State<sqlx::PgPool>>()
-        .await
-        .map_err(|e| format!("Failed to get pool: {}", e))?
-        .0;
+    let pool = expect_context::<sqlx::PgPool>();
 
     let participant_id = db::submit_vote(
         &pool,

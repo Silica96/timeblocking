@@ -219,6 +219,44 @@ rustup target add wasm32-unknown-unknown
 cargo sqlx prepare
 ```
 
+### ⚠️ 알려진 문제: Axum 0.7 + Leptos 0.6 라우터 호환성
+
+**현재 상태**: 작업 중 (Work in Progress)
+
+Leptos 0.6과 Axum 0.7 사이의 라우터 통합에 문제가 있습니다:
+
+```rust
+error[E0599]: no method named `into_make_service` found for struct `Router<LeptosOptions>`
+```
+
+**문제 설명:**
+- `leptos_routes()` 또는 `leptos_routes_with_context()`를 호출하면 `Router<LeptosOptions>` 타입이 생성됩니다
+- Axum 0.7의 `axum::serve()`는 `into_make_service()` 메서드가 필요합니다
+- `Router<LeptosOptions>`에는 이 메서드가 없습니다 (오직 `Router<()>`만 가지고 있음)
+
+**완료된 수정사항:**
+1. ✅ SQLx 컴파일 타임 검증 오류 (8개) - `query!` 매크로에서 `query` + `bind` 패턴으로 변경
+2. ✅ Navigate 클로저 생명주기 오류 - 비동기 컨텍스트를 위한 적절한 클로닝
+3. ✅ State 추출 오류 - `leptos_axum::extract()`에서 `expect_context::<PgPool>()`로 변경
+4. ✅ API 핸들러 - Axum state 대신 Leptos context 사용
+
+**시도한 해결 방법:**
+1. 별도 API 라우트 사용 → State 타입 충돌
+2. `tower::make::Shared` 래퍼 사용 → Service trait bounds 실패
+3. 수동 hyper 서버 루프 → Service trait 미구현
+4. `with_state(())`로 state 변환 → 타입 불일치
+5. fallback_service로 라우터 중첩 → Service trait 문제
+
+**가능한 다음 단계:**
+1. Axum 0.6으로 다운그레이드 (Leptos와 더 나은 호환성 가능)
+2. 커스텀 serve 구현 사용
+3. Leptos 0.7 대기 또는 최신 leptos_axum 버전 확인
+4. 커스텀 MakeService 래퍼 구현
+5. Axum 라우트 대신 서버 함수만 사용
+
+**임시 해결책:**
+현재는 컴파일이 완료되지 않습니다. 라우팅 문제를 해결하기 전까지는 `cargo leptos serve`를 사용할 수 없습니다.
+
 ## TypeScript/Next.js 버전과의 차이
 
 ### 아키텍처
