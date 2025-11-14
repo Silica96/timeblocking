@@ -10,6 +10,9 @@ RUN apt-get update && apt-get install -y \
 # Install cargo-leptos
 RUN cargo install cargo-leptos
 
+# Add wasm32 target
+RUN rustup target add wasm32-unknown-unknown
+
 # Create app directory
 WORKDIR /app
 
