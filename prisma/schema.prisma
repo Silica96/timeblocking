@@ -1,0 +1,57 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Poll {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  createdAt   DateTime @default(now())
+  createdBy   String?
+  votes       Vote[]
+  dateOptions DateOption[]
+
+  @@map("polls")
+}
+
+model DateOption {
+  id        String   @id @default(uuid())
+  pollId    String
+  date      DateTime
+  createdAt DateTime @default(now())
+  poll      Poll     @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  votes     VoteOnDate[]
+
+  @@map("date_options")
+}
+
+model Vote {
+  id              String   @id @default(uuid())
+  pollId          String
+  participantName String?
+  participantId   String   // For tracking vote updates (cookie/session based)
+  submittedAt     DateTime @default(now())
+  poll            Poll     @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  selectedDates   VoteOnDate[]
+
+  @@map("votes")
+}
+
+model VoteOnDate {
+  id           String     @id @default(uuid())
+  voteId       String
+  dateOptionId String
+  vote         Vote       @relation(fields: [voteId], references: [id], onDelete: Cascade)
+  dateOption   DateOption @relation(fields: [dateOptionId], references: [id], onDelete: Cascade)
+
+  @@unique([voteId, dateOptionId])
+  @@map("votes_on_dates")
+}

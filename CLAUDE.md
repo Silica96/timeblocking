@@ -17,42 +17,56 @@
 ```
 timeblocking/
 ├── CLAUDE.md           # This file - AI assistant guide
-├── .gitignore          # Git ignore patterns (to be created)
-└── [Additional structure to be defined]
-```
-
-### Future Directory Structure (Template)
-
-As the project evolves, the structure should follow these conventions:
-
-```
-timeblocking/
-├── src/                # Source code
-│   ├── components/     # Reusable UI components
-│   ├── pages/          # Page components/routes
-│   ├── hooks/          # Custom React hooks (if React)
-│   ├── utils/          # Utility functions
-│   ├── services/       # API/service layer
-│   ├── types/          # TypeScript type definitions
-│   └── styles/         # Global styles
-├── tests/              # Test files
-├── docs/               # Documentation
-├── public/             # Static assets (if web app)
-└── scripts/            # Build and development scripts
+├── .gitignore          # Git ignore patterns
+├── .env.example        # Environment variables template
+├── package.json        # Node.js dependencies
+├── next.config.js      # Next.js configuration
+├── tsconfig.json       # TypeScript configuration
+├── tailwind.config.ts  # Tailwind CSS configuration
+├── postcss.config.mjs  # PostCSS configuration
+├── app/                # Next.js App Router
+│   ├── layout.tsx      # Root layout component
+│   ├── page.tsx        # Home page
+│   ├── globals.css     # Global styles
+│   └── api/            # API routes (to be created)
+├── components/         # Reusable UI components (to be created)
+├── lib/                # Utility libraries
+│   └── prisma.ts       # Prisma client instance
+├── prisma/             # Prisma ORM
+│   └── schema.prisma   # Database schema
+└── public/             # Static assets (Next.js default)
 ```
 
 ## Technology Stack
 
-**To Be Determined** - Update this section as technologies are chosen.
+### Core Technologies
 
-Considerations for date polling applications:
-- **Frontend:** React, Vue, or Svelte for interactive UI
-- **Backend:** Node.js/Express, Python/FastAPI, or Go for API server
-- **Database:** PostgreSQL or MongoDB for storing polls and votes
-- **Link Generation:** UUID or short URL service for shareable poll links
-- **State Management:** Redux, Zustand, or Context API
-- **Styling:** Tailwind CSS, CSS Modules, or styled-components
-- **Real-time Updates:** WebSockets or Server-Sent Events (optional, for live vote updates)
+- **Framework:** Next.js 14 (App Router)
+  - Full-stack React framework with server and client components
+  - API routes for backend functionality
+  - Built-in routing and optimization
+
+- **Language:** TypeScript
+  - Type-safe development
+  - Better IDE support and autocompletion
+  - Reduced runtime errors
+
+- **Database:** PostgreSQL + Prisma ORM
+  - Relational database for structured data
+  - Prisma for type-safe database access
+  - Migration support for schema changes
+
+- **Styling:** Tailwind CSS
+  - Utility-first CSS framework
+  - Rapid UI development
+  - Built-in responsive design
+
+### Additional Technologies
+
+- **Link Generation:** UUID (built-in with Prisma)
+- **Deployment:** Vercel (recommended for Next.js)
+- **State Management:** React hooks and Server Components (no external library needed initially)
+- **Real-time Updates:** To be implemented later (optional)
 
 ## Development Workflow
 
@@ -195,34 +209,84 @@ npm test -- --coverage # Coverage report
 
 Document major architectural decisions here as they are made:
 
-1. **[Date] - Technology Stack Selection**
-   - Decision: [To be made]
-   - Rationale: [To be documented]
-   - Alternatives considered: [To be documented]
+1. **2025-11-14 - Technology Stack Selection**
+   - Decision: Next.js 14 (App Router) + TypeScript + Prisma + PostgreSQL + Tailwind CSS
+   - Rationale:
+     - Next.js provides full-stack capabilities with server/client components
+     - TypeScript ensures type safety across the application
+     - Prisma offers excellent TypeScript integration and developer experience
+     - PostgreSQL provides reliable relational data storage
+     - Tailwind CSS enables rapid UI development
+   - Alternatives considered:
+     - Separate React + Express stack (more complex deployment)
+     - Vue or Svelte (less ecosystem support)
 
-2. **[Date] - Data Model Design**
-   - Decision: [To be made]
-   - Rationale: [To be documented]
+2. **2025-11-14 - Data Model Design**
+   - Decision: Relational model with Poll, DateOption, Vote, and VoteOnDate entities
+   - Rationale: Clear separation of concerns, supports many-to-many relationships
 
 ### Design Patterns
 
 Preferred patterns for this project:
-- **State Management:** [To be defined]
-- **API Communication:** [To be defined]
-- **Error Handling:** [To be defined]
-- **Data Fetching:** [To be defined]
+- **State Management:** React hooks + Server Components (Next.js App Router pattern)
+- **API Communication:** Next.js API routes with server actions
+- **Error Handling:** Try-catch blocks with user-friendly error messages
+- **Data Fetching:** Server Components for initial data, client components for interactions
 
 ## Common Tasks
 
 ### Setting Up Development Environment
 
 ```bash
-# To be defined
+# Clone the repository
 git clone <repository-url>
 cd timeblocking
+
 # Install dependencies
+npm install
+
 # Set up environment variables
+cp .env.example .env
+# Edit .env and add your DATABASE_URL
+
+# Set up the database (if using PostgreSQL)
+# Make sure PostgreSQL is running, then:
+npx prisma migrate dev --name init
+
+# Generate Prisma Client
+npx prisma generate
+
 # Run development server
+npm run dev
+
+# Open http://localhost:3000 in your browser
+```
+
+### Database Setup
+
+**Option 1: PostgreSQL (Production-ready)**
+```bash
+# Install PostgreSQL locally or use a service like Railway, Supabase, or Neon
+# Update .env with your DATABASE_URL
+DATABASE_URL="postgresql://user:password@localhost:5432/timeblocking"
+
+# Run migrations
+npx prisma migrate dev
+```
+
+**Option 2: SQLite (Quick local development)**
+```bash
+# Update prisma/schema.prisma datasource to:
+# datasource db {
+#   provider = "sqlite"
+#   url      = "file:./dev.db"
+# }
+
+# Update .env
+DATABASE_URL="file:./dev.db"
+
+# Run migrations
+npx prisma migrate dev
 ```
 
 ### Adding a New Feature
@@ -463,6 +527,11 @@ Document major changes and versions here.
 
 - **2025-11-14:** Initial CLAUDE.md created
 - **2025-11-14:** Updated project purpose to date polling/scheduling coordination application
+- **2025-11-14:** Project initialized with Next.js 14, TypeScript, Tailwind CSS, and Prisma
+  - Created initial project structure with App Router
+  - Set up Prisma schema with Poll, DateOption, Vote, and VoteOnDate models
+  - Configured development environment
+  - Added basic homepage with project description
 
 ## Contributing
 
