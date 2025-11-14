@@ -8,12 +8,13 @@
 
 **Status:** Initial setup phase
 
+**Do Not Create README.md**
+
 ## Repository Structure
 
 ```
 timeblocking/
 ├── CLAUDE.md           # This file - AI assistant guide
-├── README.md           # User-facing documentation (to be created)
 ├── .gitignore          # Git ignore patterns (to be created)
 └── [Additional structure to be defined]
 ```
