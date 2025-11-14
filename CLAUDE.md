@@ -8,11 +8,44 @@
 
 **Similar Services:** Doodle, When2meet, LettuceMeet
 
-**Status:** Initial setup phase
+**Status:** Two implementations available:
+- **TypeScript/Next.js**: Production-ready (main branch)
+- **Rust/Leptos**: Full-stack Rust rewrite (rust-migration branch)
 
 **Do Not Create README.md**
 
+## Implementations
+
+This project has two implementations:
+
+### 1. TypeScript/Next.js (Original)
+- **Branch**: `main` / various claude branches
+- **Frontend**: Next.js 14 with React
+- **Backend**: Next.js API routes
+- **Database**: PostgreSQL with Prisma ORM
+- **See**: Original repository structure below
+
+### 2. Rust/Leptos (Full-stack Rust)
+- **Branch**: `claude/rust-migration-*`
+- **Frontend**: Leptos (Rust WASM framework)
+- **Backend**: Axum (Rust web framework)
+- **Database**: PostgreSQL with SQLx
+- **See**: README.rust.md for detailed documentation
+
+**Benefits of Rust version:**
+- Complete type safety across frontend and backend
+- Better performance and lower resource usage
+- Zero-cost abstractions
+- Compile-time guarantees
+
+**Tradeoffs:**
+- Steeper learning curve
+- Longer compile times
+- Smaller ecosystem compared to JavaScript/TypeScript
+
 ## Repository Structure
+
+### TypeScript/Next.js Version
 
 ```
 timeblocking/
@@ -34,18 +67,66 @@ timeblocking/
 │   ├── layout.tsx         # Root layout component
 │   ├── page.tsx           # Home page
 │   ├── globals.css        # Global styles
-│   └── api/               # API routes (to be created)
-├── components/            # Reusable UI components (to be created)
+│   ├── create/            # Create poll page
+│   ├── poll/[id]/         # Poll voting page
+│   └── api/               # API routes
+│       └── polls/         # Poll endpoints
+├── components/            # Reusable UI components
+│   └── CalendarGrid.tsx   # Calendar component
 ├── lib/                   # Utility libraries
-│   └── prisma.ts          # Prisma client instance
+│   ├── prisma.ts          # Prisma client instance
+│   ├── constants/         # Constants
+│   ├── hooks/             # Custom React hooks
+│   └── utils/             # Utility functions
 ├── prisma/                # Prisma ORM
-│   └── schema.prisma      # Database schema
-└── public/                # Static assets (Next.js default)
+│   ├── schema.prisma      # Database schema
+│   └── migrations/        # Database migrations
+└── public/                # Static assets
+```
+
+### Rust/Leptos Version
+
+```
+timeblocking/
+├── CLAUDE.md              # This file - AI assistant guide
+├── README.rust.md         # Rust-specific documentation
+├── Cargo.toml             # Rust dependencies
+├── Leptos.toml            # Leptos configuration
+├── .env.rust              # Environment variables template
+├── Dockerfile.rust        # Rust production Docker image
+├── docker-compose.rust.yml # Docker Compose for Rust version
+├── src/
+│   ├── main.rs            # Server entrypoint (Axum)
+│   ├── lib.rs             # Library root
+│   ├── app.rs             # Leptos app and routing
+│   ├── models/            # Data models (shared)
+│   │   └── mod.rs
+│   ├── api/               # API handlers (SSR only)
+│   │   ├── mod.rs
+│   │   └── polls.rs
+│   ├── db/                # Database logic (SSR only)
+│   │   ├── mod.rs
+│   │   └── polls.rs
+│   ├── components/        # Leptos components
+│   │   ├── mod.rs
+│   │   └── calendar_grid.rs
+│   └── pages/             # Leptos pages
+│       ├── mod.rs
+│       ├── home.rs
+│       ├── create.rs
+│       └── poll.rs
+├── migrations/            # SQLx database migrations
+│   └── 20251114000000_init.sql
+├── style/                 # CSS/SCSS files
+│   └── main.css
+└── public/                # Static assets
 ```
 
 ## Technology Stack
 
-### Core Technologies
+### TypeScript/Next.js Version
+
+**Core Technologies:**
 
 - **Framework:** Next.js 14 (App Router)
   - Full-stack React framework with server and client components
@@ -67,12 +148,54 @@ timeblocking/
   - Rapid UI development
   - Built-in responsive design
 
-### Additional Technologies
+**Additional Technologies:**
 
 - **Link Generation:** UUID (built-in with Prisma)
 - **Deployment:** Vercel (recommended for Next.js)
-- **State Management:** React hooks and Server Components (no external library needed initially)
+- **State Management:** React hooks and Server Components
 - **Real-time Updates:** To be implemented later (optional)
+
+### Rust/Leptos Version
+
+**Core Technologies:**
+
+- **Frontend Framework:** Leptos 0.6
+  - Modern reactive UI framework for Rust
+  - Server-side rendering (SSR) with hydration
+  - Component-based architecture similar to React
+  - Compiles to WebAssembly for browser execution
+
+- **Backend Framework:** Axum 0.7
+  - Ergonomic and modular web framework
+  - Built on Tokio async runtime
+  - Type-safe routing and extractors
+  - Excellent performance
+
+- **Language:** Rust (Edition 2021)
+  - Memory safety without garbage collection
+  - Zero-cost abstractions
+  - Compile-time guarantees
+  - Shared types between frontend and backend
+
+- **Database:** PostgreSQL + SQLx
+  - Async, compile-time checked SQL queries
+  - Type-safe database access
+  - Migration support with sqlx-cli
+  - No ORM overhead
+
+- **Styling:** Tailwind CSS
+  - Same utility-first approach as TypeScript version
+  - Processed during build
+
+**Additional Technologies:**
+
+- **WASM Bindgen:** JavaScript interop for WebAssembly
+- **Gloo-net:** HTTP client for browser (WASM)
+- **Tokio:** Async runtime for server
+- **Serde:** Serialization/deserialization
+- **Chrono:** Date and time handling
+- **UUID:** Unique identifier generation
+- **Deployment:** Docker, any VPS, or Rust-friendly platforms
 
 ## Development Workflow
 
@@ -609,6 +732,15 @@ Document major changes and versions here.
   - Configured Next.js standalone output mode
   - Added Docker-related npm scripts
   - Updated documentation with Docker setup instructions
+- **2025-11-14:** Full-stack Rust implementation (Leptos + Axum)
+  - Created complete Rust rewrite on separate branch
+  - Frontend: Leptos 0.6 with SSR and hydration
+  - Backend: Axum 0.7 with async handlers
+  - Database: SQLx with compile-time checked queries
+  - Implemented all features: poll creation, calendar grid, voting, results
+  - Added Dockerfile.rust and docker-compose.rust.yml
+  - Created README.rust.md with detailed documentation
+  - Updated CLAUDE.md to document both implementations
 
 ## Contributing
 

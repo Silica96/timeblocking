@@ -1,0 +1,54 @@
+[package]
+name = "timeblocking"
+version = "0.1.0"
+
+# The site root
+output-name = "timeblocking"
+
+# The source directory
+site-root = "target/site"
+
+# The site directory
+site-pkg-dir = "pkg"
+
+# The style file in the assets directory
+style-file = "style/main.css"
+
+# Assets source directory (copied to target/site/)
+assets-dir = "public"
+
+# The IP and port where the server will run
+site-addr = "0.0.0.0:3000"
+
+# The port to use for automatic reload monitoring
+reload-port = 3001
+
+# The browserlist query used for optimizing the CSS
+browserquery = "defaults"
+
+# Set by cargo-leptos watch when building with that tool. Controls whether autoreload JS will be included in the head
+watch = false
+
+# The environment Leptos will run in, usually `DEV` or `PROD`
+env = "DEV"
+
+# The features to use when compiling the bin target
+bin-features = ["ssr"]
+
+# The features to use when compiling the lib target
+lib-features = ["hydrate"]
+
+# Defines additional parameters to pass to the wasm-bindgen tool
+# wasm-bindgen-flags = []
+
+# Defines additional parameters to pass to wasm-opt
+# wasm-opt-flags = []
+
+# If the --no-default-features flag should be used when compiling the bin target
+bin-default-features = false
+
+# If the --no-default-features flag should be used when compiling the lib target
+lib-default-features = false
+
+# The profile to use for the lib target when compiling for release
+lib-profile-release = "wasm-release"
