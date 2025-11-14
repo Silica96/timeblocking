@@ -2,9 +2,11 @@
 
 ## Project Overview
 
-**Project Name:** Timeblocking
+**Project Name:** Timeblocking (Date Polling & Scheduling Coordination)
 
-**Purpose:** A timeblocking application to help users manage their schedules by allocating specific time blocks for tasks and activities.
+**Purpose:** A web application that helps groups find the best meeting date through collaborative polling. Users create a poll with multiple date options, share a unique link, and participants vote on their available dates without authentication. The system displays voting results to help identify the most popular dates.
+
+**Similar Services:** Doodle, When2meet, LettuceMeet
 
 **Status:** Initial setup phase
 
@@ -43,13 +45,14 @@ timeblocking/
 
 **To Be Determined** - Update this section as technologies are chosen.
 
-Considerations for timeblocking applications:
-- **Frontend:** React, Vue, or Svelte for web; React Native or Flutter for mobile
+Considerations for date polling applications:
+- **Frontend:** React, Vue, or Svelte for interactive UI
 - **Backend:** Node.js/Express, Python/FastAPI, or Go for API server
-- **Database:** PostgreSQL, MongoDB, or SQLite for data persistence
-- **Calendar Integration:** Google Calendar API, Microsoft Graph API
+- **Database:** PostgreSQL or MongoDB for storing polls and votes
+- **Link Generation:** UUID or short URL service for shareable poll links
 - **State Management:** Redux, Zustand, or Context API
 - **Styling:** Tailwind CSS, CSS Modules, or styled-components
+- **Real-time Updates:** WebSockets or Server-Sent Events (optional, for live vote updates)
 
 ## Development Workflow
 
@@ -86,10 +89,10 @@ Follow conventional commits:
 
 **Examples:**
 ```
-feat(calendar): add drag-and-drop time block creation
-fix(auth): resolve token expiration handling
+feat(poll): add date selection grid component
+fix(voting): resolve duplicate vote submission issue
 docs(readme): update installation instructions
-refactor(api): simplify event fetching logic
+refactor(api): simplify poll data fetching logic
 ```
 
 ### Pull Request Guidelines
@@ -138,13 +141,13 @@ Update this section based on chosen linter/formatter:
 
 ```javascript
 // Good: Clear, single responsibility
-function calculateTimeBlockDuration(startTime, endTime) {
-  return endTime - startTime;
+function countVotesForDate(pollId, dateId) {
+  return votes.filter(v => v.pollId === pollId && v.dateId === dateId).length;
 }
 
 // Bad: Doing too many things
-function handleTimeBlock(block) {
-  // validates, saves, updates UI, sends notifications...
+function handleVote(vote) {
+  // validates, saves, updates UI, sends notifications, recalculates...
 }
 ```
 
@@ -172,7 +175,7 @@ function handleTimeBlock(block) {
 ### Testing Guidelines
 
 1. **Test behavior, not implementation**
-2. **Use descriptive test names:** `it('should create time block when user drags on calendar')`
+2. **Use descriptive test names:** `it('should allow user to vote for multiple dates')`
 3. **AAA Pattern:** Arrange, Act, Assert
 4. **Mock external dependencies**
 5. **Test edge cases and error conditions**
@@ -304,57 +307,89 @@ For understanding the codebase:
 4. Follow imports to understand dependencies
 5. Use Task tool with subagent_type=Explore for broad investigations
 
-## Timeblocking Domain Knowledge
+## Domain Knowledge: Date Polling & Scheduling
 
 ### Core Concepts
 
-1. **Time Block:** A dedicated time slot for a specific task or activity
-2. **Calendar View:** Visual representation of time blocks across days/weeks
-3. **Task:** An activity that needs to be scheduled
-4. **Priority:** Importance level of a task
-5. **Duration:** Time allocated for a time block
-6. **Recurrence:** Repeating time blocks (daily, weekly, etc.)
+1. **Poll (Event):** A scheduling poll containing multiple date options
+2. **Date Option:** A specific date/time slot that participants can vote for
+3. **Vote:** A participant's selection indicating their availability
+4. **Participant:** A person who votes on date availability (no authentication required)
+5. **Poll Link:** A unique, shareable URL for accessing a specific poll
+6. **Vote Count:** Aggregated number of participants available for each date
+7. **Poll Creator:** The person who initiates the poll (may or may not require authentication)
 
 ### Key Features (Planned)
 
-- [ ] Create, edit, delete time blocks
-- [ ] Drag-and-drop interface for scheduling
-- [ ] Calendar integration (Google Calendar, etc.)
-- [ ] Task prioritization
-- [ ] Notifications and reminders
-- [ ] Time tracking and analytics
-- [ ] Templates for recurring schedules
-- [ ] Multi-device synchronization
+- [ ] Create new poll with multiple date options
+- [ ] Generate unique shareable link for each poll
+- [ ] Vote on available dates without authentication
+- [ ] View real-time voting results
+- [ ] Display vote counts for each date option
+- [ ] Highlight most popular dates
+- [ ] Allow participants to update their votes
+- [ ] Optionally add participant names
+- [ ] Visual calendar/grid interface for date selection
+- [ ] Copy poll link to clipboard
 
 ### User Workflows
 
-1. **Creating a Time Block:**
-   - User selects time slot on calendar
-   - Enters task details (name, description, priority)
-   - Saves time block
-   - System validates and stores
+1. **Creating a Poll (Poll Creator):**
+   - User opens the application
+   - Enters poll title/description
+   - Selects multiple date options
+   - Clicks "Create Poll"
+   - System generates unique poll link
+   - User copies link to share with participants
 
-2. **Editing a Time Block:**
-   - User clicks existing time block
-   - Modifies details or time
-   - Saves changes
-   - System updates and revalidates conflicts
+2. **Voting on a Poll (Participant):**
+   - User receives poll link from creator
+   - Opens link in browser (no login required)
+   - Views poll title and available dates
+   - Selects all dates they are available
+   - Optionally enters their name
+   - Submits votes
+   - Views updated voting results showing all participants' availability
 
-3. **Viewing Schedule:**
-   - User selects view (day, week, month)
-   - System displays time blocks
-   - User can filter by category, priority
+3. **Viewing Poll Results:**
+   - User opens poll link
+   - Sees visual representation of votes per date
+   - Identifies dates with highest availability
+   - Can see participant names (if provided)
+   - Can update own votes if needed
+
+### Data Model (Preliminary)
+
+```javascript
+Poll {
+  id: string (UUID)
+  title: string
+  description: string (optional)
+  dateOptions: Date[]
+  createdAt: timestamp
+  createdBy: string (optional)
+}
+
+Vote {
+  id: string
+  pollId: string (foreign key)
+  participantName: string (optional)
+  selectedDates: Date[]
+  submittedAt: timestamp
+  participantId: string (for tracking vote updates)
+}
+```
 
 ## Performance Considerations
 
 ### Optimization Guidelines
 
 1. **Lazy Loading:** Load components and data as needed
-2. **Caching:** Cache frequently accessed data
-3. **Debouncing:** Debounce user inputs (search, resize)
-4. **Virtual Scrolling:** For long lists of time blocks
+2. **Caching:** Cache poll data to reduce server requests
+3. **Debouncing:** Debounce vote submissions and updates
+4. **Optimistic Updates:** Update UI immediately before server confirmation
 5. **Code Splitting:** Split bundles for faster initial load
-6. **Image Optimization:** Compress and lazy-load images
+6. **Efficient Rendering:** Only re-render affected date cells when votes change
 
 ### Performance Metrics
 
@@ -407,14 +442,18 @@ Document solutions to common problems here as they arise.
 
 ## Resources
 
-### Timeblocking Methodology
+### Similar Services (for Reference)
 
-- [Cal Newport's Time Blocking Guide](https://www.calnewport.com/blog/2013/12/21/deep-habits-the-importance-of-planning-every-minute-of-your-work-day/)
-- [Todoist Guide to Time Blocking](https://todoist.com/productivity-methods/time-blocking)
+- [Doodle](https://doodle.com/) - Meeting scheduling and polling
+- [When2meet](https://www.when2meet.com/) - Group availability finder
+- [LettuceMeet](https://lettucemeet.com/) - Simple meeting scheduler
+- [Calendly](https://calendly.com/) - Scheduling automation
 
 ### Development Resources
 
 - [Add relevant documentation links as project evolves]
+- UX patterns for date/time selection
+- Best practices for shareable link generation
 
 ## Changelog
 
@@ -423,6 +462,7 @@ Document solutions to common problems here as they arise.
 Document major changes and versions here.
 
 - **2025-11-14:** Initial CLAUDE.md created
+- **2025-11-14:** Updated project purpose to date polling/scheduling coordination application
 
 ## Contributing
 
