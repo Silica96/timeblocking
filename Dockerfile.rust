@@ -14,7 +14,7 @@ RUN cargo install cargo-leptos
 WORKDIR /app
 
 # Copy dependency files
-COPY Cargo.toml Cargo.lock ./
+COPY Cargo.toml ./
 COPY Leptos.toml ./
 
 # Copy source code
