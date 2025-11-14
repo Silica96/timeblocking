@@ -6,6 +6,7 @@ async fn main() {
     use leptos_axum::{generate_route_list_with_ssg, LeptosRoutes};
     use timeblocking::app::*;
     use timeblocking::db;
+    use tower_http::services::ServeDir;
 
     // Load environment variables
     dotenvy::dotenv().ok();
@@ -32,6 +33,8 @@ async fn main() {
 
     // Build application router with context
     let app = Router::new()
+        .nest_service("/pkg", ServeDir::new("target/site/pkg"))
+        .route_service("/main.css", tower_http::services::ServeFile::new("target/site/main.css"))
         .leptos_routes_with_context(
             &leptos_options,
             routes,
