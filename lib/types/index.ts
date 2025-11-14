@@ -3,6 +3,8 @@ export interface Poll {
   id: string;
   title: string;
   description: string | null;
+  startDate: Date;
+  endDate: Date;
   createdAt: Date;
   createdBy: string | null;
   dateOptions: DateOption[];
@@ -36,7 +38,8 @@ export interface VoteOnDate {
 export interface CreatePollRequest {
   title: string;
   description?: string;
-  dateOptions: string[]; // ISO date strings
+  startDate: string; // ISO date string (YYYY-MM-DD)
+  endDate: string;   // ISO date string (YYYY-MM-DD)
 }
 
 export interface CreatePollResponse {
