@@ -16,6 +16,7 @@ pub fn CalendarGrid(
     selected_dates: ReadSignal<Vec<Uuid>>,
     on_toggle: impl Fn(Uuid) + 'static + Clone,
     max_votes: i64,
+    #[prop(default = false)] is_unavailable: bool,
 ) -> impl IntoView {
     let months = group_by_month(&date_options);
 
@@ -31,6 +32,7 @@ pub fn CalendarGrid(
                         selected_dates=selected_dates
                         on_toggle=on_toggle
                         max_votes=max_votes
+                        is_unavailable=is_unavailable
                     />
                 }
             }).collect::<Vec<_>>()}
@@ -46,6 +48,7 @@ fn MonthCalendar(
     selected_dates: ReadSignal<Vec<Uuid>>,
     on_toggle: impl Fn(Uuid) + 'static + Clone,
     max_votes: i64,
+    is_unavailable: bool,
 ) -> impl IntoView {
     // Create hashmap for quick lookup
     let dates_map: HashMap<NaiveDate, &DateOptionWithVotes> = dates
@@ -126,7 +129,7 @@ fn MonthCalendar(
                         Some((day, Some(date_option))) => {
                             let date_id = date_option.id;
                             let vote_count = date_option.vote_count;
-                            let heatmap_class = get_heatmap_color(vote_count, max_votes);
+                            let heatmap_class = get_heatmap_color(vote_count, max_votes, is_unavailable);
 
                             view! {
                                 <DayCell
@@ -137,6 +140,7 @@ fn MonthCalendar(
                                     weekday=weekday
                                     selected_dates=selected_dates
                                     on_toggle=on_toggle
+                                    is_unavailable=is_unavailable
                                 />
                             }.into_view()
                         }
@@ -156,6 +160,7 @@ fn DayCell(
     weekday: usize,
     selected_dates: ReadSignal<Vec<Uuid>>,
     on_toggle: impl Fn(Uuid) + 'static,
+    is_unavailable: bool,
 ) -> impl IntoView {
     let is_selected = move || selected_dates.get().contains(&date_id);
 
@@ -170,13 +175,20 @@ fn DayCell(
         "text-gray-700 dark:text-gray-300"
     };
 
+    // Selected color based on vote type
+    let selected_color = if is_unavailable {
+        "border-red-500 bg-red-500"
+    } else {
+        "border-blue-500 bg-blue-500"
+    };
+
     view! {
         <button
             type="button"
             class=move || {
                 let base = "aspect-square p-2 rounded-lg border-2 transition-all relative cursor-pointer hover:scale-105";
                 if is_selected() {
-                    format!("{} border-blue-500 bg-blue-500 text-white font-bold shadow-lg scale-105", base)
+                    format!("{} {} text-white font-bold shadow-lg scale-105", base, selected_color)
                 } else if !heatmap_class.is_empty() {
                     format!("{} border-gray-200 dark:border-gray-700 {} text-gray-900", base, heatmap_class)
                 } else {
@@ -217,18 +229,30 @@ fn group_by_month(dates: &[DateOptionWithVotes]) -> Vec<(i32, u32, Vec<DateOptio
     result
 }
 
-fn get_heatmap_color(vote_count: i64, max_votes: i64) -> &'static str {
+fn get_heatmap_color(vote_count: i64, max_votes: i64, is_unavailable: bool) -> &'static str {
     if max_votes == 0 || vote_count == 0 {
         return "";
     }
 
     let percentage = (vote_count as f64 / max_votes as f64 * 100.0) as i64;
 
-    match percentage {
-        80..=100 => "bg-green-600",
-        60..=79 => "bg-green-500",
-        40..=59 => "bg-green-400",
-        20..=39 => "bg-green-300",
-        _ => "bg-green-200",
+    if is_unavailable {
+        // Red heatmap for unavailable dates
+        match percentage {
+            80..=100 => "bg-red-600",
+            60..=79 => "bg-red-500",
+            40..=59 => "bg-red-400",
+            20..=39 => "bg-red-300",
+            _ => "bg-red-200",
+        }
+    } else {
+        // Green heatmap for available dates
+        match percentage {
+            80..=100 => "bg-green-600",
+            60..=79 => "bg-green-500",
+            40..=59 => "bg-green-400",
+            20..=39 => "bg-green-300",
+            _ => "bg-green-200",
+        }
     }
 }

@@ -240,7 +240,7 @@ pub fn PollPage() -> impl IntoView {
                                     <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
                                         {match poll.poll.vote_type {
                                             VoteType::Available => "클릭하여 가능한 날짜를 선택하세요. 진한 녹색은 많은 사람이 가능한 날짜입니다.",
-                                            VoteType::Unavailable => "클릭하여 불가능한 날짜를 선택하세요. 진한 녹색은 많은 사람이 불가능한 날짜입니다.",
+                                            VoteType::Unavailable => "클릭하여 불가능한 날짜를 선택하세요. 진한 빨간색은 많은 사람이 불가능한 날짜입니다.",
                                         }}
                                     </p>
 
@@ -249,6 +249,7 @@ pub fn PollPage() -> impl IntoView {
                                         selected_dates=selected_dates
                                         on_toggle=toggle_date
                                         max_votes=max_votes()
+                                        is_unavailable=poll.poll.vote_type == VoteType::Unavailable
                                     />
                                 </div>
 
