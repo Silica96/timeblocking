@@ -9,7 +9,6 @@ pub fn App() -> impl IntoView {
     provide_meta_context();
 
     view! {
-        <Stylesheet id="tailwind" href="/main.css"/>
         <Stylesheet id="leptos" href="/pkg/timeblocking.css"/>
         <Title text="Timeblocking - 날짜 투표"/>
         <Meta name="description" content="그룹 일정 조율을 위한 날짜 투표 서비스"/>

@@ -40,7 +40,6 @@ async fn main() {
         .route("/api/polls/:id/vote", post(api::submit_vote))
         // Static assets
         .nest_service("/pkg", ServeDir::new("target/site/pkg"))
-        .route_service("/main.css", tower_http::services::ServeFile::new("target/site/main.css"))
         .leptos_routes_with_context(
             &leptos_options,
             routes,
