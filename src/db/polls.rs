@@ -73,14 +73,14 @@ pub async fn get_poll_with_results(
     let results = sqlx::query(
         r#"
         SELECT
-            do.id,
-            do.date,
+            d.id,
+            d.date,
             COUNT(DISTINCT vod.vote_id) as vote_count
-        FROM date_options do
-        LEFT JOIN votes_on_dates vod ON do.id = vod.date_option_id
-        WHERE do.poll_id = $1
-        GROUP BY do.id, do.date
-        ORDER BY do.date
+        FROM date_options d
+        LEFT JOIN votes_on_dates vod ON d.id = vod.date_option_id
+        WHERE d.poll_id = $1
+        GROUP BY d.id, d.date
+        ORDER BY d.date
         "#,
     )
     .bind(poll_id)
