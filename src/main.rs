@@ -1,10 +1,11 @@
 #[cfg(feature = "ssr")]
 #[tokio::main]
 async fn main() {
-    use axum::Router;
+    use axum::{routing::{get, post}, Router};
     use leptos::*;
     use leptos_axum::{generate_route_list_with_ssg, LeptosRoutes};
     use timeblocking::app::*;
+    use timeblocking::api;
     use timeblocking::db;
     use tower_http::services::ServeDir;
 
@@ -33,6 +34,11 @@ async fn main() {
 
     // Build application router with context
     let app = Router::new()
+        // API routes
+        .route("/api/polls", post(api::create_poll))
+        .route("/api/polls/:id", get(api::get_poll))
+        .route("/api/polls/:id/vote", post(api::submit_vote))
+        // Static assets
         .nest_service("/pkg", ServeDir::new("target/site/pkg"))
         .route_service("/main.css", tower_http::services::ServeFile::new("target/site/main.css"))
         .leptos_routes_with_context(
