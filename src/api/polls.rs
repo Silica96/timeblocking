@@ -63,6 +63,7 @@ pub async fn create_poll(
         req.description,
         req.start_date,
         req.end_date,
+        req.vote_type,
     )
     .await?;
 

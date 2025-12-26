@@ -144,9 +144,23 @@ pub fn PollPage() -> impl IntoView {
                     view! {
                         <div>
                             <div class="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-md mb-8">
-                                <h1 class="text-3xl font-bold mb-2 text-gray-900 dark:text-white">
-                                    {poll.poll.title.clone()}
-                                </h1>
+                                <div class="flex items-center gap-3 mb-2">
+                                    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
+                                        {poll.poll.title.clone()}
+                                    </h1>
+                                    <span class={format!(
+                                        "px-3 py-1 rounded-full text-sm font-medium {}",
+                                        match poll.poll.vote_type {
+                                            VoteType::Available => "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
+                                            VoteType::Unavailable => "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
+                                        }
+                                    )}>
+                                        {match poll.poll.vote_type {
+                                            VoteType::Available => "되는 날짜",
+                                            VoteType::Unavailable => "안되는 날짜",
+                                        }}
+                                    </span>
+                                </div>
                                 {poll.poll.description.as_ref().map(|desc| view! {
                                     <p class="text-gray-600 dark:text-gray-400">{desc}</p>
                                 })}
@@ -159,14 +173,25 @@ pub fn PollPage() -> impl IntoView {
                                 </p>
                             </div>
 
-                            {move || top_dates().and_then(|dates| {
+                            {move || {
+                                let vote_type = poll_data.get().map(|p| p.poll.vote_type).unwrap_or_default();
+                                top_dates().and_then(|dates| {
                                 if dates.is_empty() {
                                     None
                                 } else {
                                     Some(view! {
-                                        <div class="bg-gradient-to-r from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 rounded-lg p-6 shadow-md mb-8">
+                                        <div class={format!(
+                                            "rounded-lg p-6 shadow-md mb-8 {}",
+                                            match vote_type {
+                                                VoteType::Available => "bg-gradient-to-r from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20",
+                                                VoteType::Unavailable => "bg-gradient-to-r from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20",
+                                            }
+                                        )}>
                                             <h2 class="text-xl font-bold mb-4 text-gray-900 dark:text-white">
-                                                "🏆 인기 날짜 Top 3"
+                                                {match vote_type {
+                                                    VoteType::Available => "🏆 인기 날짜 Top 3",
+                                                    VoteType::Unavailable => "⚠️ 가장 많이 안되는 날짜 Top 3",
+                                                }}
                                             </h2>
                                             <div class="space-y-2">
                                                 {dates.into_iter().enumerate().map(|(idx, result)| {
@@ -189,7 +214,7 @@ pub fn PollPage() -> impl IntoView {
                                         </div>
                                     })
                                 }
-                            })}
+                            })}}
 
                             <form on:submit=on_submit>
                                 <div class="mb-6">
@@ -207,10 +232,16 @@ pub fn PollPage() -> impl IntoView {
 
                                 <div class="mb-6">
                                     <h2 class="text-xl font-bold mb-4 text-gray-900 dark:text-white">
-                                        "가능한 날짜를 선택하세요"
+                                        {match poll.poll.vote_type {
+                                            VoteType::Available => "가능한 날짜를 선택하세요",
+                                            VoteType::Unavailable => "불가능한 날짜를 선택하세요",
+                                        }}
                                     </h2>
                                     <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                                        "클릭하여 날짜를 선택하거나 해제할 수 있습니다. 진한 녹색은 많은 사람이 선택한 날짜입니다."
+                                        {match poll.poll.vote_type {
+                                            VoteType::Available => "클릭하여 가능한 날짜를 선택하세요. 진한 녹색은 많은 사람이 가능한 날짜입니다.",
+                                            VoteType::Unavailable => "클릭하여 불가능한 날짜를 선택하세요. 진한 녹색은 많은 사람이 불가능한 날짜입니다.",
+                                        }}
                                     </p>
 
                                     <CalendarGrid

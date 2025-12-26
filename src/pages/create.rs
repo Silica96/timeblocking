@@ -8,6 +8,7 @@ pub fn CreatePollPage() -> impl IntoView {
     let (description, set_description) = create_signal(String::new());
     let (start_date, set_start_date) = create_signal(String::new());
     let (end_date, set_end_date) = create_signal(String::new());
+    let (vote_type, set_vote_type) = create_signal(VoteType::Available);
     let (error, set_error) = create_signal(None::<String>);
     let (creating, set_creating) = create_signal(false);
 
@@ -36,6 +37,7 @@ pub fn CreatePollPage() -> impl IntoView {
         let desc_val = description.get();
         let start_val = start_date.get();
         let end_val = end_date.get();
+        let vote_type_val = vote_type.get();
 
         // Validation
         if title_val.trim().is_empty() {
@@ -65,6 +67,7 @@ pub fn CreatePollPage() -> impl IntoView {
                 end_date: format!("{}T00:00:00Z", end_val)
                     .parse()
                     .unwrap(),
+                vote_type: vote_type_val,
             };
 
             match create_poll_request(request).await {
@@ -110,6 +113,42 @@ pub fn CreatePollPage() -> impl IntoView {
                         prop:value=description
                         on:input=move |ev| set_description.set(event_target_value(&ev))
                     />
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-sm font-bold mb-2 text-gray-700 dark:text-gray-300">
+                        "투표 유형 *"
+                    </label>
+                    <div class="flex gap-4">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input
+                                type="radio"
+                                name="vote_type"
+                                value="available"
+                                checked=move || vote_type.get() == VoteType::Available
+                                on:change=move |_| set_vote_type.set(VoteType::Available)
+                                class="w-4 h-4 text-blue-600"
+                            />
+                            <span class="text-gray-700 dark:text-gray-300">"되는 날짜 선택"</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input
+                                type="radio"
+                                name="vote_type"
+                                value="unavailable"
+                                checked=move || vote_type.get() == VoteType::Unavailable
+                                on:change=move |_| set_vote_type.set(VoteType::Unavailable)
+                                class="w-4 h-4 text-blue-600"
+                            />
+                            <span class="text-gray-700 dark:text-gray-300">"안되는 날짜 선택"</span>
+                        </label>
+                    </div>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                        {move || match vote_type.get() {
+                            VoteType::Available => "참여자들이 가능한 날짜를 선택합니다",
+                            VoteType::Unavailable => "참여자들이 불가능한 날짜를 선택합니다",
+                        }}
+                    </p>
                 </div>
 
                 <div class="grid md:grid-cols-2 gap-6 mb-6">
@@ -196,6 +235,7 @@ async fn create_poll_request(
         request.description,
         request.start_date,
         request.end_date,
+        request.vote_type,
     )
     .await
     .map_err(|e| format!("Database error: {}", e))?;

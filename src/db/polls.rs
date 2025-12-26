@@ -9,14 +9,15 @@ pub async fn create_poll(
     description: Option<String>,
     start_date: DateTime<Utc>,
     end_date: DateTime<Utc>,
+    vote_type: VoteType,
 ) -> Result<Uuid, sqlx::Error> {
     let poll_id = Uuid::new_v4();
 
     // Insert poll
     sqlx::query(
         r#"
-        INSERT INTO polls (id, title, description, start_date, end_date, created_at)
-        VALUES ($1, $2, $3, $4, $5, NOW())
+        INSERT INTO polls (id, title, description, start_date, end_date, vote_type, created_at)
+        VALUES ($1, $2, $3, $4, $5, $6, NOW())
         "#,
     )
     .bind(poll_id)
@@ -24,6 +25,7 @@ pub async fn create_poll(
     .bind(description)
     .bind(start_date)
     .bind(end_date)
+    .bind(vote_type.as_str())
     .execute(pool)
     .await?;
 
@@ -60,7 +62,7 @@ pub async fn get_poll_with_results(
     // Get poll
     let poll = sqlx::query_as::<_, Poll>(
         r#"
-        SELECT id, title, description, start_date, end_date, created_at, created_by
+        SELECT id, title, description, start_date, end_date, created_at, created_by, vote_type
         FROM polls
         WHERE id = $1
         "#,
