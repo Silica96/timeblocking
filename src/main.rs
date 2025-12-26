@@ -32,12 +32,17 @@ async fn main() {
     let addr = leptos_options.site_addr;
     let (routes, _static_data_map) = generate_route_list_with_ssg(App);
 
+    // API routes with database pool state
+    let api_router = Router::new()
+        .route("/polls", post(api::create_poll))
+        .route("/polls/:id", get(api::get_poll))
+        .route("/polls/:id/vote", post(api::submit_vote))
+        .with_state(pool.clone());
+
     // Build application router with context
     let app = Router::new()
-        // API routes
-        .route("/api/polls", post(api::create_poll))
-        .route("/api/polls/:id", get(api::get_poll))
-        .route("/api/polls/:id/vote", post(api::submit_vote))
+        // API routes (nested under /api)
+        .nest("/api", api_router)
         // Static assets
         .nest_service("/pkg", ServeDir::new("target/site/pkg"))
         .leptos_routes_with_context(

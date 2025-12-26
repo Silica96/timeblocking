@@ -1,12 +1,11 @@
 use crate::db;
 use crate::models::*;
 use axum::{
-    extract::Path,
+    extract::{Path, State},
     http::StatusCode,
     response::{IntoResponse, Response},
     Json,
 };
-use leptos::*;
 use sqlx::PgPool;
 use uuid::Uuid;
 
@@ -44,10 +43,9 @@ impl From<sqlx::Error> for ApiError {
 }
 
 pub async fn create_poll(
+    State(pool): State<PgPool>,
     Json(req): Json<CreatePollRequest>,
 ) -> ApiResult<Json<CreatePollResponse>> {
-    let pool = expect_context::<PgPool>();
-
     // Validation
     if req.title.trim().is_empty() {
         return Err(ApiError::ValidationError("Title is required".to_string()));
@@ -72,19 +70,18 @@ pub async fn create_poll(
 }
 
 pub async fn get_poll(
+    State(pool): State<PgPool>,
     Path(poll_id): Path<Uuid>,
 ) -> ApiResult<Json<PollWithResults>> {
-    let pool = expect_context::<PgPool>();
     let poll = db::get_poll_with_results(&pool, poll_id).await?;
     Ok(Json(poll))
 }
 
 pub async fn submit_vote(
+    State(pool): State<PgPool>,
     Path(poll_id): Path<Uuid>,
     Json(req): Json<SubmitVoteRequest>,
 ) -> ApiResult<Json<SubmitVoteResponse>> {
-    let pool = expect_context::<PgPool>();
-
     if req.selected_date_ids.is_empty() {
         return Err(ApiError::ValidationError(
             "At least one date must be selected".to_string(),
